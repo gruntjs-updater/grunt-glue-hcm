@@ -103,7 +103,6 @@ module.exports = function(grunt) {
 			cssJson.children[hcmKey].attributes.display = "block";
 		}
 
-		grunt.file.write('test.json', JSON.stringify(cssJson,null,4));
 		grunt.file.write(file.css + fileName, CSSJSON.toCSS(cssJson));
 		done();
 	};
