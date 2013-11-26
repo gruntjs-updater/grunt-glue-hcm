@@ -85,7 +85,7 @@ module.exports = function(grunt) {
 
 		cssJson.children['.hcm:before'].attributes = {
 			"position" : "relative",
-			"content" : firstDeclaration.attributes['background-image']
+			"content" : firstDeclaration.attributes['background-image'].replace(/["']/g, "")
 		};
 
 		// Removing first and last keys
