@@ -23,7 +23,7 @@ module.exports = function(grunt) {
 	var getImagePosition = function(backgroundPosition){
 		var aux = backgroundPosition.replace(/px/g,'').split(' ');
 
-    return {
+		return {
 			x : aux[0],
 			y : aux[1]
 		};
@@ -31,14 +31,14 @@ module.exports = function(grunt) {
 
 	function clone(obj) {
 		if (null === obj || "object" !== typeof obj) {
-      return obj;
-    }
+			return obj;
+		}
 
-    var copy = obj.constructor();
+		var copy = obj.constructor();
 		for (var attr in obj) {
 			if (obj.hasOwnProperty(attr)) {
-        copy[attr] = obj[attr];
-      }
+				copy[attr] = obj[attr];
+			}
 		}
 		return copy;
 	}
@@ -57,9 +57,25 @@ module.exports = function(grunt) {
 			fileName += 'css';
 		}
 
-		var cssJson = CSSJSON.toJSON(grunt.file.read(file.css + fileName),true);
+		var cssJson = CSSJSON.toJSON(grunt.file.read(file.css + fileName), true);
 		var cssJsonKeys = Object.keys(cssJson.children);
 		var firstDeclaration = cssJson.children[cssJsonKeys[0]];
+
+		// Adding High Contrast Mode classes
+		cssJson.children['.normal .hcm'] = initStructure();
+		cssJson.children['.normal .hcm:before'] = initStructure();
+
+		cssJson.children['.normal .hcm'].attributes = {
+			"display": "inline-block",
+			"background-image": "none !important",
+			"overflow": "hidden",
+			"position": "relative"
+		};
+
+		cssJson.children['.normal .hcm:before'].attributes = {
+			"position" : "relative",
+			"content" : firstDeclaration.attributes['background-image'].replace(/["']/g, "")
+		};
 
 		// We have to disable HCM in retina since Retina is unlikely to be available in a hcm
 		if (options.retina){
@@ -68,25 +84,17 @@ module.exports = function(grunt) {
 			var key = Object.keys(lastDeclaration.children)[0];
 			var cloned = clone(lastDeclaration.children[key]);
 			delete lastDeclaration.children[key];
-			key += ',\n' + '.hcm:before';
+			key += ',\n' + '.hcm';
 			lastDeclaration.children[key] = cloned;
+			lastDeclaration.children['.normal .hcm:before'] = initStructure();
+			lastDeclaration.children['.normal .hcm:before'].attributes = {
+				"content" : "\"\" !important"
+			};
+			lastDeclaration.children[key].attributes['background-image'] = lastDeclaration.children[key].attributes['background-image'] + ' !important';
+
+			delete cssJson.children[lastDeclarationKey];
+			cssJson.children[lastDeclarationKey] = lastDeclaration;
 		}
-
-		// Adding High Contrast Mode classes
-		cssJson.children['.hcm'] = initStructure();
-		cssJson.children['.hcm:before'] = initStructure();
-
-		cssJson.children['.hcm'].attributes = {
-			"display": "inline-block",
-			"background-image": "none !important",
-			"overflow": "hidden",
-			"position": "relative"
-		};
-
-		cssJson.children['.hcm:before'].attributes = {
-			"position" : "relative",
-			"content" : firstDeclaration.attributes['background-image'].replace(/["']/g, "")
-		};
 
 		// Removing first and last keys
 		cssJsonKeys.pop();
@@ -107,7 +115,7 @@ module.exports = function(grunt) {
 		done();
 	};
 
-  grunt.registerMultiTask('glue', 'A wrapper for the Glue spriting tool, offering some advanced options.', function() {
+	grunt.registerMultiTask('glue', 'A wrapper for the Glue spriting tool, offering some advanced options.', function() {
 		var done = this.async();
 
 		// Merge task-specific and/or target-specific options with these defaults.
@@ -156,8 +164,8 @@ module.exports = function(grunt) {
 			}
 		}
 
-    // Iterate over all specified file groups.
-    this.files.forEach(function(file) {
+		// Iterate over all specified file groups.
+		this.files.forEach(function(file) {
 			var src = file.src.filter(function(filepath){
 				var exists = true;
 
@@ -187,6 +195,6 @@ module.exports = function(grunt) {
 					}
 				});
 			});
-    });
-  });
+		});
+	});
 };
